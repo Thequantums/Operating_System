@@ -1,0 +1,33 @@
+Name: Sokchetra Eung
+ID: 405 147 924
+
+lab0.c: this is the C source code that read from stdin and write to stdout. There are 4 options which are --input=filename --output=filename --segfault --catch. --segfault option causes segmentation fault to occurs in the program.
+	 --catch option catch the segmentaion fault signal if it occurs by the --segfault option.
+
+Makefile: contains following targets:
+	default: compiles C source code with -g -wall -wextra option and produced an executable file lab0
+	clean: remove tar.gz, object files and text file and lab0
+	dist: make a lab0.tar.gz with included files: lab0.c Makefile README and 2 png images.
+	check:	
+	correctouput: compare the input and output files. if they are not zero, meaning they are different then test failed.
+	opentest: open the file with non-existing file. if the exit code is not 2, test failed.
+	createtest: testing creating a file. The file is supposed to be uncreatable, if the exit code is not 3, then test failed.
+	invalidarg: test with wrong argument, if the exit code is not 1, test fails.
+	invalidopt: test with wrong option like --apple. If the exit code is not 1, test fails.
+	catchsig: test with option --catch to catch the segsigv signal. if the exit code is not 4, test fails
+	segfaulttest: test with option --segfault to causes segmentation fault . If the exit code is not 139, then program didnt cause segmentation fault
+	successexit: test if the program can successfully exit with code 0 if every input is good. Test passese if exit code is 0.
+
+README: the is the file that includes any description about this lab0.
+
+backtrace.png:
+	this image contains a picture about bt of the program when encounters with segmentation fault.
+
+breakpoint.png:
+	this image contains a picture showing breakpoint of the line in source code c that causes segmentation fault.
+
+reference sources:
+	dup and dup2: https://www.gnu.org/software/libc/manual/html_node/Duplicating-Descriptors.html 
+	get_optlong: https://linux.die.net/man/3/getopt_long
+	makefile: http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/
+	gdb backtrace: https://stackoverflow.com/questions/505465/line-number-of-segmentation-fault

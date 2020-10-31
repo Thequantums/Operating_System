@@ -1,0 +1,21 @@
+NAME: SOKCHETRA EUNG
+EMAIL: sokchetraeung@gmail.com
+ID: 405147924
+
+lab1b-client.c: This is a c source code for client program that connects to server program in local host
+		the connection is made with a certain port number. also there is a --compress to compress
+		data before being send to server side. and --log=filename to keep track of data sent and
+		received from server. the client program takes input from stdin. and disable cannonical mode
+		and enable again after.
+
+lab1b-server.c: This is a c source code for server program that connects to client program with a certain port
+		number by option --port=number. the server takes input from client and write it to shell and takes
+		input from shell and write back to client throught local host network. --compress option
+		is used to decompress data before send to shell and compress data after getting from shell and send
+		to client.
+
+Makefile: 
+	default target: compile lab1b-client.c and lab1b-server.c with -Wall -Wextra and -lz flag to
+			enable zlib.
+	dist target: make lab1b-405147924.tar.gz with server and client programs, README, and Makefile
+	clean target: remove any objects files executables file and .tar.gz files plus txt files if any.

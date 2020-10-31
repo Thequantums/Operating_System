@@ -1,0 +1,15 @@
+NAME: sokchetra eung
+ID: 405147924
+EMAIL: sokchetraeung@gmail.com
+
+Lab4b.c : 
+	C source code for the program that can run on beagle bone and read temperature and report it with local time and specified format
+	+ other command line arguments.
+
+Makefile:
+	 Contains default for creating a executable of lab4b.c named lab4b.
+	 dist command that make tar ball of the neccessary files
+	 clean command to clean tar file and executable file and other txt files if exist
+	 check run ./check.sh. The check.sh is derived from the test script provided from the project site.
+
+README: contains names, ID, EMAIL and descriptions of other files.

@@ -1,0 +1,383 @@
+Total: 563 samples
+     449  79.8%  79.8%      563 100.0% func
+      59  10.5%  90.2%       59  10.5% SortedList_lookup
+      46   8.2%  98.4%       46   8.2% __strcmp_sse42
+       9   1.6% 100.0%       55   9.8% SortedList_insert
+       0   0.0% 100.0%      563 100.0% __clone
+       0   0.0% 100.0%      563 100.0% start_thread
+ROUTINE ====================== func in /u/ee/ugrad/sokchetr/cs111/lab2/lab2a/test/lab2b/lab2_list.c
+   449    563 Total samples (flat / cumulative)
+     .      .   34: 
+     .      .   35: 	return key[1] % num_list;
+     .      .   36: }
+     .      .   37: 
+     .      .   38: 
+---
+     .      .   39: void* func( void* ID) {
+     .      .   40: 	int start_index = *(int*) ID;
+     .      .   41: 	int i = start_index;
+     .      .   42: 	struct timespec start_time;
+     .      .   43: 	struct timespec end_time;
+     .      .   44: 	int hash_value; // which sub list to go
+     .      .   45: 
+     .      .   46: //	printf("%d\n",start_index);
+     .      .   47: 	//insert in list through number of iterations per start index 
+     .      .   48: 	for (; i <num_elements; i = i + num_th) {
+     .      .   49: 		//get hash value for this iteration
+     .      .   50: 		hash_value = hash(elements[i].key);		
+     .      .   51: 		if (sync_type == 'm') {
+     .      .   52: 			//mutex
+     .      .   53: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   54: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .   55: 				exit(1);
+     .      .   56: 			}
+     .      .   57: 			pthread_mutex_lock(&mutex[hash_value]);
+     .      .   58: 			// get the lock
+     .      .   59: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .   60: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .   61: 				exit(1);
+     .      .   62: 			}
+     .      .   63: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .   64: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   65: 			pthread_mutex_unlock(&mutex[hash_value]);
+     .      .   66: 
+     .      .   67: 		}
+     .      .   68: 		else if (sync_type == 's') {
+     .      .   69: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   70: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .   71: 				exit(1);
+     .      .   72: 			}			
+   307    307   73: 			while(__sync_lock_test_and_set(&s_lock[hash_value],1));
+     .      .   74: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .   75: 				fprintf(stderr, "Error: end clock in thread, spin lock.\n");
+     .      .   76: 				exit(1);
+     .      .   77: 			}
+     .      .   78: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);		
+     .     55   79: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   80: 			__sync_lock_release(&s_lock[hash_value]);
+     .      .   81: 		}
+     .      .   82: 		else {
+     .      .   83: 			// no lock
+     .      .   84: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   85: //			llen=SortedList_length(&list[hash_value]);
+     .      .   86: //			printf("sub_list: %d has %d length after insert\n", hash_value,llen);
+     .      .   87: 		}		
+     .      .   88: 	}
+     .      .   89: 
+     .      .   90: 	//getting length
+     .      .   91: 	int len = 0;
+     .      .   92: 	int sub_len = 0;
+     .      .   93: 		if (sync_type == 'm') {
+     .      .   94: 			//mutex
+     .      .   95: 		   for (i=0; i <num_list; i++) {
+     .      .   96: 
+     .      .   97: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   98: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .   99: 				exit(1);
+     .      .  100: 			}
+     .      .  101: 			pthread_mutex_lock(&mutex[i]);
+     .      .  102: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  103: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  104: 				exit(1);
+     .      .  105: 			}
+     .      .  106: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  107: 			sub_len = SortedList_length(&list[i]);
+     .      .  108: 			if (sub_len == -1) {
+     .      .  109: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  110: 				exit(2);
+     .      .  111: 			}
+     .      .  112: 			len = len + sub_len;
+     .      .  113: 			pthread_mutex_unlock(&mutex[i]);
+     .      .  114: 
+     .      .  115: 		    }
+     .      .  116: 		}
+     .      .  117: 		else if (sync_type == 's') {
+     .      .  118: 		  for (i = 0; i < num_list; i++) {
+     .      .  119: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  120: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .  121: 				exit(1);
+     .      .  122: 			}
+     .      .  123: 			while(__sync_lock_test_and_set(&s_lock[i],1));
+     .      .  124: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  125: 				fprintf(stderr, "Error: end clock in thread, spin lock.\n");
+     .      .  126: 				exit(1);
+     .      .  127: 			}
+     .      .  128: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  129: 			sub_len = SortedList_length(&list[i]);
+     .      .  130: 			if (sub_len == -1) {
+     .      .  131: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  132: 				exit(2);
+     .      .  133: 			}
+     .      .  134: 			len = len + sub_len;
+     .      .  135: 			__sync_lock_release(&s_lock[i]);
+     .      .  136: 			}
+     .      .  137: 		}
+     .      .  138: 		else {
+     .      .  139: 			// no lock
+     .      .  140: 		    for (i=0; i <num_list;i++) {
+     .      .  141: 			sub_len = SortedList_length(&list[i]);
+     .      .  142: 			if (sub_len == -1) {
+     .      .  143: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  144: 				exit(2);
+     .      .  145: 			}
+     .      .  146: //			printf("%d has %d length\n",i,sub_len);
+     .      .  147: 			len = len + sub_len;
+     .      .  148: 		    }
+     .      .  149: //			printf("Total length: %d\n",len);			
+     .      .  150: 		}	
+     .      .  151: 
+     .      .  152: 	//lock up and delete 
+     .      .  153: 	SortedListElement_t* node;
+     .      .  154: 	for (i = start_index; i <num_elements; i= i + num_th) {
+     .      .  155: 		hash_value = hash(elements[i].key);
+     .      .  156: 		if (sync_type == 'm') {
+     .      .  157: 			//mutex
+     .      .  158: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  159: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .  160: 				exit(1);
+     .      .  161: 			}
+     .      .  162: 			pthread_mutex_lock(&mutex[hash_value]);
+     .      .  163: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  164: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  165: 				exit(1);
+     .      .  166: 			}
+     .      .  167: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  168: 			
+     .      .  169: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  170: 			if (node == NULL) {
+     .      .  171: 				fprintf(stderr, "error: finding element\n");
+     .      .  172: 				exit(2);
+     .      .  173: 			}
+     .      .  174: 			SortedList_delete(node);
+     .      .  175: 			pthread_mutex_unlock(&mutex[hash_value]);
+     .      .  176: 		}
+     .      .  177: 		else if (sync_type == 's') {
+     .      .  178: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  179: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .  180: 				exit(1);
+     .      .  181: 			}
+   142    142  182: 			while(__sync_lock_test_and_set(&s_lock[hash_value],1));
+     .      .  183: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  184: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  185: 				exit(1);
+     .      .  186: 			}
+     .      .  187: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  188: 			
+     .     59  189: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  190: 			if (node == NULL) {
+     .      .  191: 				fprintf(stderr, "error: finding element\n");
+     .      .  192: 				exit(2);
+     .      .  193: 			}
+     .      .  194: 			SortedList_delete(node);
+     .      .  195: 			__sync_lock_release(&s_lock[hash_value]);
+     .      .  196: 		}
+     .      .  197: 		else {
+     .      .  198: 			// no lock
+     .      .  199: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  200: 			if (node == NULL) {
+     .      .  201: 				fprintf(stderr, "error: finding element\n");
+     .      .  202: 				exit(2);
+     .      .  203: 			}
+     .      .  204: 			SortedList_delete(node);
+     .      .  205: //			len = SortedList_length(&list[hash_value]);
+     .      .  206: //			printf("sub_List: %d has %d length after delete\n", hash_value,len);
+     .      .  207: 		}		
+     .      .  208: 	}
+     .      .  209: 
+     .      .  210: 
+     .      .  211: 	return NULL;
+     .      .  212: }
+---
+     .      .  213: 
+     .      .  214: void setyield(char* str) {
+     .      .  215: 	if (strlen(str) > 3) {
+     .      .  216: 		fprintf(stderr, "Error: too many options for yields\n");
+     .      .  217: 		exit(1);
+ROUTINE ====================== func in /u/ee/ugrad/sokchetr/cs111/lab2/lab2a/test/lab2b/lab2_list.c
+   449    563 Total samples (flat / cumulative)
+     .      .   34: 
+     .      .   35: 	return key[1] % num_list;
+     .      .   36: }
+     .      .   37: 
+     .      .   38: 
+---
+     .      .   39: void* func( void* ID) {
+     .      .   40: 	int start_index = *(int*) ID;
+     .      .   41: 	int i = start_index;
+     .      .   42: 	struct timespec start_time;
+     .      .   43: 	struct timespec end_time;
+     .      .   44: 	int hash_value; // which sub list to go
+     .      .   45: 
+     .      .   46: //	printf("%d\n",start_index);
+     .      .   47: 	//insert in list through number of iterations per start index 
+     .      .   48: 	for (; i <num_elements; i = i + num_th) {
+     .      .   49: 		//get hash value for this iteration
+     .      .   50: 		hash_value = hash(elements[i].key);		
+     .      .   51: 		if (sync_type == 'm') {
+     .      .   52: 			//mutex
+     .      .   53: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   54: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .   55: 				exit(1);
+     .      .   56: 			}
+     .      .   57: 			pthread_mutex_lock(&mutex[hash_value]);
+     .      .   58: 			// get the lock
+     .      .   59: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .   60: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .   61: 				exit(1);
+     .      .   62: 			}
+     .      .   63: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .   64: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   65: 			pthread_mutex_unlock(&mutex[hash_value]);
+     .      .   66: 
+     .      .   67: 		}
+     .      .   68: 		else if (sync_type == 's') {
+     .      .   69: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   70: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .   71: 				exit(1);
+     .      .   72: 			}			
+   307    307   73: 			while(__sync_lock_test_and_set(&s_lock[hash_value],1));
+     .      .   74: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .   75: 				fprintf(stderr, "Error: end clock in thread, spin lock.\n");
+     .      .   76: 				exit(1);
+     .      .   77: 			}
+     .      .   78: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);		
+     .     55   79: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   80: 			__sync_lock_release(&s_lock[hash_value]);
+     .      .   81: 		}
+     .      .   82: 		else {
+     .      .   83: 			// no lock
+     .      .   84: 			SortedList_insert(&list[hash_value], &elements[i]);
+     .      .   85: //			llen=SortedList_length(&list[hash_value]);
+     .      .   86: //			printf("sub_list: %d has %d length after insert\n", hash_value,llen);
+     .      .   87: 		}		
+     .      .   88: 	}
+     .      .   89: 
+     .      .   90: 	//getting length
+     .      .   91: 	int len = 0;
+     .      .   92: 	int sub_len = 0;
+     .      .   93: 		if (sync_type == 'm') {
+     .      .   94: 			//mutex
+     .      .   95: 		   for (i=0; i <num_list; i++) {
+     .      .   96: 
+     .      .   97: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .   98: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .   99: 				exit(1);
+     .      .  100: 			}
+     .      .  101: 			pthread_mutex_lock(&mutex[i]);
+     .      .  102: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  103: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  104: 				exit(1);
+     .      .  105: 			}
+     .      .  106: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  107: 			sub_len = SortedList_length(&list[i]);
+     .      .  108: 			if (sub_len == -1) {
+     .      .  109: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  110: 				exit(2);
+     .      .  111: 			}
+     .      .  112: 			len = len + sub_len;
+     .      .  113: 			pthread_mutex_unlock(&mutex[i]);
+     .      .  114: 
+     .      .  115: 		    }
+     .      .  116: 		}
+     .      .  117: 		else if (sync_type == 's') {
+     .      .  118: 		  for (i = 0; i < num_list; i++) {
+     .      .  119: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  120: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .  121: 				exit(1);
+     .      .  122: 			}
+     .      .  123: 			while(__sync_lock_test_and_set(&s_lock[i],1));
+     .      .  124: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  125: 				fprintf(stderr, "Error: end clock in thread, spin lock.\n");
+     .      .  126: 				exit(1);
+     .      .  127: 			}
+     .      .  128: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  129: 			sub_len = SortedList_length(&list[i]);
+     .      .  130: 			if (sub_len == -1) {
+     .      .  131: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  132: 				exit(2);
+     .      .  133: 			}
+     .      .  134: 			len = len + sub_len;
+     .      .  135: 			__sync_lock_release(&s_lock[i]);
+     .      .  136: 			}
+     .      .  137: 		}
+     .      .  138: 		else {
+     .      .  139: 			// no lock
+     .      .  140: 		    for (i=0; i <num_list;i++) {
+     .      .  141: 			sub_len = SortedList_length(&list[i]);
+     .      .  142: 			if (sub_len == -1) {
+     .      .  143: 				fprintf(stderr,  "Error: corrupted list\n");
+     .      .  144: 				exit(2);
+     .      .  145: 			}
+     .      .  146: //			printf("%d has %d length\n",i,sub_len);
+     .      .  147: 			len = len + sub_len;
+     .      .  148: 		    }
+     .      .  149: //			printf("Total length: %d\n",len);			
+     .      .  150: 		}	
+     .      .  151: 
+     .      .  152: 	//lock up and delete 
+     .      .  153: 	SortedListElement_t* node;
+     .      .  154: 	for (i = start_index; i <num_elements; i= i + num_th) {
+     .      .  155: 		hash_value = hash(elements[i].key);
+     .      .  156: 		if (sync_type == 'm') {
+     .      .  157: 			//mutex
+     .      .  158: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  159: 				fprintf(stderr, "Error: start clock in thread, mutex.\n");
+     .      .  160: 				exit(1);
+     .      .  161: 			}
+     .      .  162: 			pthread_mutex_lock(&mutex[hash_value]);
+     .      .  163: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  164: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  165: 				exit(1);
+     .      .  166: 			}
+     .      .  167: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  168: 			
+     .      .  169: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  170: 			if (node == NULL) {
+     .      .  171: 				fprintf(stderr, "error: finding element\n");
+     .      .  172: 				exit(2);
+     .      .  173: 			}
+     .      .  174: 			SortedList_delete(node);
+     .      .  175: 			pthread_mutex_unlock(&mutex[hash_value]);
+     .      .  176: 		}
+     .      .  177: 		else if (sync_type == 's') {
+     .      .  178: 			if (clock_gettime(CLOCK_MONOTONIC, &start_time) < 0) {
+     .      .  179: 				fprintf(stderr, "Error: start clock in thread, spin lock.\n");
+     .      .  180: 				exit(1);
+     .      .  181: 			}
+   142    142  182: 			while(__sync_lock_test_and_set(&s_lock[hash_value],1));
+     .      .  183: 			if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {
+     .      .  184: 				fprintf(stderr, "Error: end clock in thread, mutex.\n");
+     .      .  185: 				exit(1);
+     .      .  186: 			}
+     .      .  187: 			elapse_lock = elapse_lock + 1000000000 * (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec);
+     .      .  188: 			
+     .     59  189: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  190: 			if (node == NULL) {
+     .      .  191: 				fprintf(stderr, "error: finding element\n");
+     .      .  192: 				exit(2);
+     .      .  193: 			}
+     .      .  194: 			SortedList_delete(node);
+     .      .  195: 			__sync_lock_release(&s_lock[hash_value]);
+     .      .  196: 		}
+     .      .  197: 		else {
+     .      .  198: 			// no lock
+     .      .  199: 			node = SortedList_lookup(&list[hash_value],elements[i].key);
+     .      .  200: 			if (node == NULL) {
+     .      .  201: 				fprintf(stderr, "error: finding element\n");
+     .      .  202: 				exit(2);
+     .      .  203: 			}
+     .      .  204: 			SortedList_delete(node);
+     .      .  205: //			len = SortedList_length(&list[hash_value]);
+     .      .  206: //			printf("sub_List: %d has %d length after delete\n", hash_value,len);
+     .      .  207: 		}		
+     .      .  208: 	}
+     .      .  209: 
+     .      .  210: 
+     .      .  211: 	return NULL;
+     .      .  212: }
+---
+     .      .  213: 
+     .      .  214: void setyield(char* str) {
+     .      .  215: 	if (strlen(str) > 3) {
+     .      .  216: 		fprintf(stderr, "Error: too many options for yields\n");
+     .      .  217: 		exit(1);

@@ -1,0 +1,27 @@
+NAME: John Tomikawa,Sokchetra Eung
+EMAIL: john.tomikawa@gmail.com,sokchetraeung@gmail.com
+ID: 805181505,405147924
+
+
+lab3b.py: a python source code that reads a csv file and audits on blocks, inodes and directpories.
+
+Makefile: contains three targets:
+	  default: produces an executable file <lab3b>.
+	  clean: remove lab3b and .tar.gz file
+	  dist: zip a tar ball of Makefile,README,lab3b.py
+
+README: a file contains general information about this project
+
+
+References:
+https://www.geeksforgeeks.org/soft-hard-links-unixlinux/
+https://realpython.com/python-csv/
+https://stackoverflow.com/questions/24641894/making-objects-from-a-csv-file-python
+https://www.geeksforgeeks.org/class-method-vs-static-method-python/
+https://stackoverflow.com/questions/47128105/how-to-get-data-from-csv-into-a-python-object
+https://www.w3schools.com/python/python_casting.asp
+https://docs.python.org/3/tutorial/classes.html
+http://www.nongnu.org/ext2-doc/ext2.html#bg-reserved
+http://web.cs.ucla.edu/classes/cs111/Samples/
+https://rogerdudler.github.io/git-guide/
+https://www.geeksforgeeks.org/python-list/

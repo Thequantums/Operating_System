@@ -1,0 +1,18 @@
+NAME: Sokchetra Eung
+EMAIL: sokchetraeung@gmail.com
+ID:405147924
+
+S/N: BBGW17100716
+MAC: 2CF7F1066E74
+
+my_beaglebone.jpg: a selfie of myself with beaglebone taking from phone
+
+build_run.png: a screen shot of running hello.c program to display hello world
+
+connected.png: a screen shot dispaying terminal with name change to my ID and ifconfig output
+
+copy.png: a screen shot of using pscp to send c file to beaglebone via wifi.
+
+git.png: installing git using apt-get and clone a repository from git account.
+
+Makefile: to build tar ball of all the files here.

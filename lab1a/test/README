@@ -1,0 +1,18 @@
+NAME:sokchetra eung
+EMAIL:sokchetraeung@gmail.com
+ID:405 147 924
+SLIPDAYS:1
+
+lab1a.c : C source code that performs duplex terminal I/O, processes communication, changing terminal modes
+	  and supports a --shell option that creates another process to run shell commands from input terminal
+
+Makefile: default: compile lab1a.c with -Wall and -Wextra options
+	  clean: removed executable file, and .tar.gz
+	  dist: zip tarball containing lab1a.c, Makefile, README
+
+reference Sources:
+set up noncanonical mode  - https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+using poll multiplexing - http://www.unixguide.net/unix/programming/2.1.2.shtml
+fork example - https://www.geeksforgeeks.org/fork-system-call/
+pipe system call - https://www.geeksforgeeks.org/pipe-system-call/
+Termios - https://pubs.opengroup.org/onlinepubs/007904875/functions/tcgetattr.html

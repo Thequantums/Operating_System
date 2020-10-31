@@ -1,0 +1,57 @@
+NAME: sokchetra eung
+EMAIL: sokchetraeung@gmail.com
+ID: 405147924
+
+QUESTION 2.3.1 - On the 1 and 2 threads list tests, most of the cycles are spent on inserting, deleting, looking up, getting length of the lists.
+		 because on small threads, there is no contention or little contention to get the lock; so no thread has to wait long time to get lock.
+
+		 On high-thread spin-lock, most of the cycles are spent on spin lock loop keeps asking to get a lock. This is based on cpu profiling i ran.
+		 On high-thread mutex, most of the cycles are spent on performing list operations because if a mutex doesnt get the lock, it goes to sleep
+		 doesnt waste any cpu cycles like spin lock.
+
+QUESTION 2.3.2 - Based on CPU profiling profile.out, most of the cycles are spent on line:73 and line:142 which has spin lock running while loop waiting to get the lock.
+		 
+		 With large number of threads, there are more contention; so more wait time for each thread to get the lock. Therefore; spin lock keeps wasting cpu cycles
+		 while waiting to get the lock. 
+
+
+QUESTION 2.3.3 - The average lock-wait time rise dramatically because each thread have to wait longer time to get the lock as there are more threads contending to get the lock.
+		 
+		 The completion time per operation rise less dramatically because it is total time that all the threads finish divided by operations. However, the wait time is
+		 the accumulated time from start to finish of each thread added together.
+		 
+		 It is possible because wait time obtained by each thread counts overlap of real time. And time per operation is the real time. 
+		 
+
+QUESTION 2.3.4 - As the number of sub lists increases, we can see throughput maintains much higher throughput than the sublist = 1.
+		 
+		 As the number of lists is further increased, the throughput will continue to increase until there are more sub lists than elements; so throughput is getting worse
+		 because more time spent searching the lists.
+		
+		 It doesnt appear to be true because N-way partioned lists has more locking and hence spend more time than a single list with fewer threads.
+ 
+
+SortedList.h: a header file for SortedList.c that contains four functions of link lists.
+
+SortedList.c: a c source code that contains four functions: insert, delete, look up and getlength.
+
+lab2_list.c: a c source code that takes command line agruments number of threads, iterations, lock types, yield types, and lists division options.
+	     it creates threads and each thread perform insert, get length, look up and delete. all threads access the global head list variable.
+
+README: contains answers to questions and information about files.
+
+*.csv:
+	 test scripts to generate ploting provided.
+
+*.png:
+	image files of the plots
+
+Makefile:
+	run over 200 cases test and generate plots
+	dafault to compile c sources code
+	clean 
+	dist to build tarball
+	graphs to graph ploting to png files
+	profile to perform cpu profiling
+
+
